@@ -115,6 +115,12 @@ end
 
 
 class Database
+  class << self
+    def load(file_path)
+      m = Marshal.load(File.read(file_path))
+    end
+  end
+
   attr_reader :feature_extractor
 
   def initialize(feature_extractor)
@@ -141,6 +147,7 @@ class Database
         @feature_to_string_map[feature] << string
       end
     end
+    nil
   end
 
   def min_feature_size
@@ -157,6 +164,10 @@ class Database
 
   def lookup_strings_by_feature(feature)
     @feature_to_string_map[feature] || Set.new
+  end
+
+  def save(file_path)
+    File.open(file_path, 'w') {|f| f.write(Marshal.dump(self)) }
   end
 end
 
