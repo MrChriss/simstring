@@ -55,6 +55,10 @@ class Measure
   def minimum_common_feature_count(query_size, y_size, alpha)
     raise "Not implemented."
   end
+
+  def similarity(x_feature_set, y_feature_set)
+    raise "Not implemented."
+  end
 end
 
 class CosineMeasure < Measure
@@ -68,6 +72,10 @@ class CosineMeasure < Measure
 
   def minimum_common_feature_count(query_size, y_size, alpha)
     (alpha * Math.sqrt(query_size * y_size)).ceil.to_i
+  end
+
+  def similarity(x_feature_set, y_feature_set)
+    (x_feature_set & y_feature_set).size.to_f / Math.sqrt(x_feature_set.size * y_feature_set.size)
   end
 end
 
@@ -83,6 +91,10 @@ class ExactMeasure < Measure
   def minimum_common_feature_count(query_size, y_size, alpha)
     query_size
   end
+
+  def similarity(x_feature_set, y_feature_set)
+    raise "ExactMeasure#similarity not implemented."
+  end
 end
 
 class JaccardMeasure < Measure
@@ -97,6 +109,10 @@ class JaccardMeasure < Measure
   def minimum_common_feature_count(query_size, y_size, alpha)
     (alpha * (query_size + y_size).to_f / (1 + alpha)).ceil.to_i
   end
+
+  def similarity(x_feature_set, y_feature_set)
+    raise "JaccardMeasure#similarity not implemented."
+  end
 end
 
 class OverlapMeasure < Measure
@@ -110,6 +126,10 @@ class OverlapMeasure < Measure
 
   def minimum_common_feature_count(query_size, y_size, alpha)
     (alpha * [query_size, y_size].min).ceil.to_i
+  end
+
+  def similarity(x_feature_set, y_feature_set)
+    raise "OverlapMeasure#similarity not implemented."
   end
 end
 
@@ -171,6 +191,8 @@ class Database
   end
 end
 
+Match = Struct.new(:value, :score)
+
 class StringMatcher
   def initialize(simstring_db, measure)
     @db = simstring_db
@@ -178,7 +200,11 @@ class StringMatcher
     @feature_extractor = @db.feature_extractor
   end
 
-  # implements "Algorithm 1: Approximate dictionary matching" described in "Simple and Efficient Algorithm for Approximate Dictionary Matching" (see http://www.aclweb.org/anthology/C10-1096)
+  # Implements "Algorithm 1: Approximate dictionary matching" described in "Simple and Efficient Algorithm for Approximate Dictionary Matching" (see http://www.aclweb.org/anthology/C10-1096)
+  # Returns an array of matching strings.
+  # Example:
+  #   matcher.search("Fooo", 0.5)
+  #   => ["Foo", "Food", "Foot"]
   def search(query_string, alpha, measure = @measure)
     feature_set = @feature_extractor.features(query_string)
     feature_set_size = feature_set.size
@@ -193,6 +219,19 @@ class StringMatcher
     matches
   end
 
+  # Same as #search, except returns an array of Match objects indicating both the matched string(s) and their corresponding similarity scores.
+  # Example:
+  #   matcher.ranked_search("Fooo", 0.5)
+  #   => [#<struct Match value="Foo", score=0.9128709291752769>,
+  #       <struct Match value="Food", score=0.5>,
+  #       <struct Match value="Foot", score=0.5>]
+  def ranked_search(query_string, alpha, measure = @measure)
+    feature_set = @feature_extractor.features(query_string)
+    search(query_string, alpha, measure).map do |matching_string|
+      Match.new(matching_string, measure.similarity(feature_set, @feature_extractor.features(matching_string)))
+    end.sort_by {|match| -match.score }
+  end
+
   private
 
   def min_overlap(measure, query_size, y_size, alpha)
@@ -201,11 +240,12 @@ class StringMatcher
 
   # implements "Algorithm 3: CPMerge algorithm" described in "Simple and Efficient Algorithm for Approximate Dictionary Matching" (see http://www.aclweb.org/anthology/C10-1096)
   def overlap_join(query_feature_set, tau, db, y_size)
+    memoized_get_fn_results = query_feature_set.reduce({}) {|memo, feature| memo[feature] = get(db, y_size, feature); memo }
     query_feature_set_size = query_feature_set.size
-    sorted_features = query_feature_set.sort_by {|feature| get(db, y_size, feature).size }
+    sorted_features = query_feature_set.sort_by {|feature| memoized_get_fn_results[feature].size }
     m = {}
     (0..(query_feature_set_size - tau)).each do |k|
-      get(db, y_size, sorted_features[k]).each do |s|
+      memoized_get_fn_results[sorted_features[k]].each do |s|
         m[s] ||= 0
         m[s] += 1
       end
@@ -215,7 +255,7 @@ class StringMatcher
       candidate_matching_strings = m.keys
       candidate_matching_strings.each do |s|
         m[s] ||= 0
-        if get(db, y_size, sorted_features[k]).include?(s)
+        if memoized_get_fn_results[sorted_features[k]].include?(s)
           m[s] += 1
         end
         if tau <= m[s]
