@@ -79,6 +79,24 @@ class CosineMeasure < Measure
   end
 end
 
+class DiceMeasure < Measure
+  def min_feature_size(db, query_size, alpha)
+    ((alpha.to_f / (2 - alpha)) * query_size).ceil.to_i
+  end
+
+  def max_feature_size(db, query_size, alpha)
+    (((2 - alpha).to_f / alpha) * query_size).floor.to_i
+  end
+
+  def minimum_common_feature_count(query_size, y_size, alpha)
+    (0.5 * alpha * (query_size * y_size)).ceil.to_i
+  end
+
+  def similarity(x_feature_set, y_feature_set)
+    (2 * (x_feature_set & y_feature_set).size).to_f / (x_feature_set.size + y_feature_set.size)
+  end
+end
+
 class ExactMeasure < Measure
   def min_feature_size(db, query_size, alpha)
     query_size
@@ -93,7 +111,11 @@ class ExactMeasure < Measure
   end
 
   def similarity(x_feature_set, y_feature_set)
-    raise "ExactMeasure#similarity not implemented."
+    if x_feature_set == y_feature_set
+      1.0
+    else
+      0.0
+    end
   end
 end
 
@@ -111,7 +133,7 @@ class JaccardMeasure < Measure
   end
 
   def similarity(x_feature_set, y_feature_set)
-    raise "JaccardMeasure#similarity not implemented."
+    (x_feature_set & y_feature_set).size.to_f / (x_feature_set | y_feature_set).size
   end
 end
 
@@ -129,7 +151,7 @@ class OverlapMeasure < Measure
   end
 
   def similarity(x_feature_set, y_feature_set)
-    raise "OverlapMeasure#similarity not implemented."
+    (x_feature_set & y_feature_set).size.to_f / [x_feature_set.size, y_feature_set.size].min
   end
 end
 
