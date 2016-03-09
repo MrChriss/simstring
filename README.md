@@ -8,6 +8,42 @@ A Ruby implementation of the SimString approximate string matching algorithm.
 - SimString paper: http://www.aclweb.org/anthology/C10-1096
 
 
+### Install
+```
+gem install simstring_pure
+```
+
+
+### Usage
+In IRB (some lines elided):
+```
+require 'simstring_pure'
+
+irb(main):003:0> require 'simstring_pure'
+
+irb(main):004:0> ngram_builder = SimString::NGramBuilder.new(3)
+
+irb(main):005:0> db = SimString::Database.new(ngram_builder)
+irb(main):006:0> db.add("foo")
+irb(main):007:0> db.add("bar")
+irb(main):008:0> db.add("food")
+irb(main):009:0> db.add("floor")
+
+irb(main):010:0> matcher = SimString::StringMatcher.new(db, SimString::CosineMeasure.new)
+
+irb(main):011:0> matcher.search("fooo", 0.6)
+=> ["foo"]
+irb(main):012:0> matcher.search("fooo", 0.5)
+=> ["foo", "food"]
+irb(main):021:0> matcher.search("fooor", 0.5)
+=> ["foo", "floor"]
+irb(main):022:0> matcher.search("for", 0.5)
+=> ["floor"]
+irb(main):023:0> matcher.search("for", 0.3)
+=> ["foo", "food", "floor"]
+```
+
+
 ### Performance:
 
 On a 2.7GHz Core i5 MacBook Pro (Retina, 13-inch, Early 2015), here are some sample timings:
