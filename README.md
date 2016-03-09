@@ -54,6 +54,14 @@ irb(main):022:0> matcher.ranked_search("for", 0.3)
 ```
 
 
+### Supported String Similarity Measures
+- Cosine
+- Dice
+- Exact
+- Jaccard
+- Overlap
+
+
 ### Performance:
 
 On a 2.7GHz Core i5 MacBook Pro (Retina, 13-inch, Early 2015), here are some sample timings:
