@@ -17,8 +17,6 @@ gem install simstring_pure
 ### Usage
 In IRB (some lines elided):
 ```
-require 'simstring_pure'
-
 irb(main):003:0> require 'simstring_pure'
 
 irb(main):004:0> ngram_builder = SimString::NGramBuilder.new(3)
@@ -41,6 +39,18 @@ irb(main):022:0> matcher.search("for", 0.5)
 => ["floor"]
 irb(main):023:0> matcher.search("for", 0.3)
 => ["foo", "food", "floor"]
+
+irb(main):011:0> matcher.ranked_search("fooo", 0.6)
+=> [#<struct SimString::Match value="foo", score=0.9128709291752769>]
+irb(main):017:0> matcher.ranked_search("fooo", 0.5)
+=> [#<struct SimString::Match value="foo", score=0.9128709291752769>, #<struct SimString::Match value="food", score=0.5>]
+irb(main):020:0> matcher.ranked_search("fooor", 0.5)
+=> [#<struct SimString::Match value="floor", score=0.5714285714285714>, #<struct SimString::Match value="foo", score=0.50709255283711>]
+irb(main):021:0> matcher.ranked_search("for", 0.5)
+=> [#<struct SimString::Match value="floor", score=0.50709255283711>]
+irb(main):022:0> matcher.ranked_search("for", 0.3)
+=> [#<struct SimString::Match value="floor", score=0.50709255283711>, #<struct SimString::Match value="foo", score=0.4>, #<struct SimString::Match value="food", score=0.3651483716701107>]
+
 ```
 
 
