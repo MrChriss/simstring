@@ -1,0 +1,28 @@
+#!/usr/bin/env ruby
+
+require 'simstring_pure'
+
+def main
+  filename, query_string, similarity_threshold = *ARGV
+  similarity_threshold = (similarity_threshold || 0.7).to_f
+
+  t1 = Time.now
+
+  ngram_builder = SimString::NGramBuilder.new(3)
+  db = SimString::Database.new(ngram_builder)
+
+  File.readlines(filename).each {|line| db.add(line.strip) }
+
+  t2 = Time.now
+
+  matcher = SimString::StringMatcher.new(db, SimString::CosineMeasure.new)
+
+  pp matcher.search(query_string, similarity_threshold)
+
+  t3 = Time.now
+
+  puts "#{t2 - t1} seconds to build database"
+  puts "#{t3 - t2} seconds to search"
+end
+
+main
