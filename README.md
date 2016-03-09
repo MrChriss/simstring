@@ -50,7 +50,6 @@ irb(main):021:0> matcher.ranked_search("for", 0.5)
 => [#<struct SimString::Match value="floor", score=0.50709255283711>]
 irb(main):022:0> matcher.ranked_search("for", 0.3)
 => [#<struct SimString::Match value="floor", score=0.50709255283711>, #<struct SimString::Match value="foo", score=0.4>, #<struct SimString::Match value="food", score=0.3651483716701107>]
-
 ```
 
 
