@@ -157,6 +157,18 @@ module SimString
     end
   end
 
+  class ComputeSimilarity
+    def initialize(feature_extractor, measure)
+      @feature_extractor, @measure = feature_extractor, measure
+    end
+
+    def similarity(string1, string2)
+      feature_set1 = @feature_extractor.features(string1)
+      feature_set2 = @feature_extractor.features(string2)
+      @measure.similarity(feature_set1, feature_set2)
+    end
+  end
+
 
   class Database
     class << self
