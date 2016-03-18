@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'simstring_pure'
-  s.version     = '1.1.0'
+  s.version     = '1.1.1'
   s.date        = '2016-03-17'
   s.summary     = "SimString approximate string matching library."
   s.description = "A Ruby implementation of the SimString approximate string matching algorithm."
