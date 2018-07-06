@@ -107,3 +107,24 @@ OR
 ```
 rake test
 ```
+
+
+### Building and Publishing Gem
+
+```
+$ gem build simstring_pure.gemspec
+  Successfully built RubyGem
+  Name: simstring_pure
+  Version: 1.1.2
+  File: simstring_pure-1.1.2.gem
+
+$ gem push simstring_pure-1.1.2.gem
+Enter your RubyGems.org credentials.
+Don't have an account yet? Create one at https://rubygems.org/sign_up
+   Email:   <email goes here>
+Password:   <password goes here>
+
+Signed in.
+Pushing gem to https://rubygems.org...
+Successfully registered gem: simstring_pure (1.1.2)
+```
