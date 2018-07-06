@@ -182,8 +182,8 @@ module SimString
     def initialize(feature_extractor)
       @strings = Set.new
       @feature_extractor = feature_extractor
-      @feature_to_string_map = {}
       @feature_set_size_to_string_map = {}
+      @feature_set_size_and_feature_to_string_map = {}
     end
 
     def add(string)
@@ -197,10 +197,11 @@ module SimString
         @feature_set_size_to_string_map[feature_set_size] ||= Set.new
         @feature_set_size_to_string_map[feature_set_size] << string
 
-        # update @feature_to_string_map
+        # update @feature_set_size_and_feature_to_string_map
+        @feature_set_size_and_feature_to_string_map[feature_set_size] ||= {}
         features.each do |feature|
-          @feature_to_string_map[feature] ||= Set.new
-          @feature_to_string_map[feature] << string
+          @feature_set_size_and_feature_to_string_map[feature_set_size][feature] ||= Set.new
+          @feature_set_size_and_feature_to_string_map[feature_set_size][feature] << string
         end
       end
       nil
@@ -214,12 +215,9 @@ module SimString
       @feature_set_size_to_string_map.keys.max
     end
 
-    def lookup_strings_by_feature_set_size(size)
-      @feature_set_size_to_string_map[size] || Set.new
-    end
-
-    def lookup_strings_by_feature(feature)
-      @feature_to_string_map[feature] || Set.new
+    def lookup_strings_by_feature_set_size_and_feature(size, feature)
+      return Set.new if @feature_set_size_and_feature_to_string_map[size].nil?
+      @feature_set_size_and_feature_to_string_map[size][feature] || Set.new
     end
 
     def save(file_path)
@@ -310,7 +308,7 @@ module SimString
     # 1. the string has a feature set size equal to <y_size>
     # 2. the string's feature set contains the feature <feature>
     def get(db, y_size, feature)
-      db.lookup_strings_by_feature_set_size(y_size) & db.lookup_strings_by_feature(feature)
+      db.lookup_strings_by_feature_set_size_and_feature(y_size, feature)
     end
   end
 
